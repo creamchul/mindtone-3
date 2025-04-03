@@ -4,6 +4,7 @@ import time
 import yaml
 from utils import analyze_emotion, clean_text, get_emotion_emoji, generate_breathing_exercise, generate_self_care_tip
 from auth_utils import setup_authenticator, register_user, check_authentication, save_user_preferences, get_user_preferences
+import os
 
 # 감정 치유 챗봇 - MindTone
 # 사용자의 감정 상태를 인식하고 공감과 위로를 제공하는 챗봇 애플리케이션
@@ -498,17 +499,4 @@ def main():
                 st.warning("사용자 이름과 비밀번호를 입력하세요.")
 
 if __name__ == "__main__":
-    # 설정 파일 확인
-    import os
-    config_path = 'config.yaml'
-    if not os.path.exists(config_path):
-        # 기본 설정으로 config.yaml 파일 생성
-        config = {
-            'credentials': {'usernames': {'jsmith': {'email': 'jsmith@gmail.com', 'name': 'John Smith', 'password': '$2b$12$K3JNm5Rp0J0KgFdPL0nN1.N7ub/HF4Z8z9TQ6d1fLRIsC8MKJQHxK'}}},
-            'cookie': {'expiry_days': 30, 'key': 'mindtone_auth_key', 'name': 'mindtone_auth'},
-            'preauthorized': {'emails': ['example@gmail.com']}
-        }
-        with open(config_path, 'w') as file:
-            yaml.dump(config, file, default_flow_style=False)
-            
     main() 
