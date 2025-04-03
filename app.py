@@ -518,4 +518,16 @@ def load_config():
     return config
 
 if __name__ == "__main__":
+    # 설정 파일 확인
+    import os
+    if not os.path.exists('config.yaml'):
+        # 기본 설정으로 config.yaml 파일 생성
+        config = {
+            'credentials': {'usernames': {'jsmith': {'email': 'jsmith@gmail.com', 'name': 'John Smith', 'password': '$2b$12$K3JNm5Rp0J0KgFdPL0nN1.N7ub/HF4Z8z9TQ6d1fLRIsC8MKJQHxK'}}},
+            'cookie': {'expiry_days': 30, 'key': 'mindtone_auth_key', 'name': 'mindtone_auth'},
+            'preauthorized': {'emails': ['example@gmail.com']}
+        }
+        with open('config.yaml', 'w') as file:
+            yaml.dump(config, file, default_flow_style=False)
+            
     main() 
