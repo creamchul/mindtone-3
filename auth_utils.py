@@ -44,6 +44,9 @@ def register_user(username, name, email, password):
         if user_data.get('email') == email:
             return False, "이미 등록된 이메일 주소입니다."
     
+    # 사전 인증된 이메일인지 확인
+    pre_authorized = email in config.get('preauthorized', {}).get('emails', [])
+    
     # 비밀번호 해싱
     hashed_password = stauth.Hasher([password]).generate()[0]
     
@@ -68,8 +71,7 @@ def setup_authenticator():
         config['credentials'],
         config['cookie']['name'],
         config['cookie']['key'],
-        config['cookie']['expiry_days'],
-        config['preauthorized']
+        config['cookie']['expiry_days']
     )
     return authenticator
 
