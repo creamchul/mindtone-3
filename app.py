@@ -1,7 +1,9 @@
 import streamlit as st
 import random
 import time
+import yaml
 from utils import analyze_emotion, clean_text, get_emotion_emoji, generate_breathing_exercise, generate_self_care_tip
+from auth_utils import setup_authenticator, register_user, check_authentication, save_user_preferences, get_user_preferences
 
 # 감정 치유 챗봇 - MindTone
 # 사용자의 감정 상태를 인식하고 공감과 위로를 제공하는 챗봇 애플리케이션
@@ -117,42 +119,171 @@ def simulate_typing(text):
     message_placeholder.markdown(full_text)
     return message_placeholder
 
-def main():
-    # 앱 설정
-    st.set_page_config(
-        page_title="MindTone - 감정 치유 챗봇",
-        page_icon="💭",
-        layout="centered"
-    )
+def registration_form():
+    """사용자 등록 양식을 표시합니다."""
+    st.subheader("회원가입")
     
-    # CSS 스타일 설정
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #f5f7f9;
+    with st.form("registration_form"):
+        username = st.text_input("사용자 아이디")
+        name = st.text_input("이름")
+        email = st.text_input("이메일")
+        password = st.text_input("비밀번호", type="password")
+        password_confirm = st.text_input("비밀번호 확인", type="password")
+        
+        submitted = st.form_submit_button("가입하기")
+        
+        if submitted:
+            if not username or not name or not email or not password:
+                st.error("모든 필드를 입력해주세요.")
+            elif password != password_confirm:
+                st.error("비밀번호가 일치하지 않습니다.")
+            else:
+                success, message = register_user(username, name, email, password)
+                if success:
+                    st.success(message)
+                    st.session_state.show_login = True
+                    st.session_state.show_registration = False
+                else:
+                    st.error(message)
+
+def apply_theme(theme_name):
+    """
+    선택된 테마에 따라 CSS를 적용합니다.
+    """
+    themes = {
+        "calm_blue": """
+        <style>
+        .stApp {
+            background-color: #f0f5f9;
+            color: #1e3d59;
+        }
+        .chat-message {
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chat-message.user {
+            background-color: #2e5c8a;
+            color: white;
+        }
+        .chat-message.bot {
+            background-color: #4d80b3;
+            color: white;
+        }
+        .stButton button {
+            background-color: #2e5c8a;
+            color: white;
+            border-radius: 20px;
+        }
+        .stTextInput input {
+            border-radius: 20px;
+            border: 1px solid #2e5c8a;
+        }
+        </style>
+        """,
+        
+        "warm_beige": """
+        <style>
+        .stApp {
+            background-color: #f9f5f0;
+            color: #5d4037;
+        }
+        .chat-message {
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chat-message.user {
+            background-color: #8d6e63;
+            color: white;
+        }
+        .chat-message.bot {
+            background-color: #a1887f;
+            color: white;
+        }
+        .stButton button {
+            background-color: #8d6e63;
+            color: white;
+            border-radius: 20px;
+        }
+        .stTextInput input {
+            border-radius: 20px;
+            border: 1px solid #8d6e63;
+        }
+        </style>
+        """,
+        
+        "soft_green": """
+        <style>
+        .stApp {
+            background-color: #f0f9f5;
+            color: #2e7d32;
+        }
+        .chat-message {
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chat-message.user {
+            background-color: #43a047;
+            color: white;
+        }
+        .chat-message.bot {
+            background-color: #66bb6a;
+            color: white;
+        }
+        .stButton button {
+            background-color: #43a047;
+            color: white;
+            border-radius: 20px;
+        }
+        .stTextInput input {
+            border-radius: 20px;
+            border: 1px solid #43a047;
+        }
+        </style>
+        """,
+        
+        "lavender": """
+        <style>
+        .stApp {
+            background-color: #f5f0f9;
+            color: #5e35b1;
+        }
+        .chat-message {
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chat-message.user {
+            background-color: #7e57c2;
+            color: white;
+        }
+        .chat-message.bot {
+            background-color: #9575cd;
+            color: white;
+        }
+        .stButton button {
+            background-color: #7e57c2;
+            color: white;
+            border-radius: 20px;
+        }
+        .stTextInput input {
+            border-radius: 20px;
+            border: 1px solid #7e57c2;
+        }
+        </style>
+        """
     }
-    .chat-message {
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-        display: flex;
-        color: #FFF;
-    }
-    .chat-message.user {
-        background-color: #2b313e;
-    }
-    .chat-message.bot {
-        background-color: #475063;
-    }
-    .emotion-btn {
-        margin: 0.2rem;
-        border-radius: 1rem;
-    }
-    .sidebar .sidebar-content {
-        background-color: #ffffff;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    
+    return themes.get(theme_name, themes["calm_blue"])
+
+def show_chat_interface():
+    """채팅 인터페이스를 표시합니다."""
     
     # 세션 상태 초기화
     if "messages" not in st.session_state:
@@ -161,16 +292,24 @@ def main():
     if "selected_emotion" not in st.session_state:
         st.session_state.selected_emotion = None
     
+    # 사용자 선호 설정 저장
+    if "preferences" not in st.session_state:
+        st.session_state.preferences = get_user_preferences(st.session_state.username)
+    
     # 헤더 및 소개
-    st.header("💭 MindTone - 감정 치유 챗봇")
+    st.header(f"💭 안녕하세요, {st.session_state.name}님!")
     st.markdown("""
-    안녕하세요! MindTone입니다. 당신의 감정을 이야기해 주세요.
+    MindTone과 함께 당신의 감정을 이야기해 보세요.
     저는 당신의 마음에 귀 기울이고 함께 감정을 나누는 공간이 되고 싶습니다.
     """)
     
     # 사이드바 메뉴
     with st.sidebar:
         st.title("도움 메뉴")
+        
+        # 로그아웃 버튼
+        st.session_state.authenticator.logout('로그아웃', 'sidebar')
+        st.markdown("---")
         
         st.subheader("명상 가이드")
         if st.button("30초 명상 시작"):
@@ -197,6 +336,31 @@ def main():
             tip = generate_self_care_tip()
             st.session_state.messages.append({"role": "assistant", "content": f"💝 자기 관리 팁: {tip}"})
         
+        # 사용자 설정
+        st.markdown("---")
+        st.subheader("환경 설정")
+        
+        # 테마 선택
+        theme_options = {
+            "calm_blue": "차분한 파랑",
+            "warm_beige": "따뜻한 베이지",
+            "soft_green": "부드러운 초록",
+            "lavender": "라벤더"
+        }
+        
+        selected_theme = st.selectbox(
+            "테마 선택", 
+            options=list(theme_options.keys()),
+            format_func=lambda x: theme_options[x],
+            index=list(theme_options.keys()).index(st.session_state.preferences.get("theme", "calm_blue"))
+        )
+        
+        if st.button("설정 저장"):
+            st.session_state.preferences["theme"] = selected_theme
+            save_user_preferences(st.session_state.username, st.session_state.preferences)
+            st.success("설정이 저장되었습니다.")
+            st.experimental_rerun()
+            
         st.markdown("---")
         st.caption("© 2023 MindTone. 이 챗봇은 전문적인 상담을 대체할 수 없습니다.")
     
@@ -265,6 +429,73 @@ def main():
             
             # 감정 선택 후 상태 초기화
             st.session_state.selected_emotion = None
+
+def main():
+    """메인 함수"""
+    # 앱 설정
+    st.set_page_config(
+        page_title="MindTone - 감정 치유 챗봇",
+        page_icon="💭",
+        layout="centered"
+    )
+    
+    # 인증 설정
+    if 'authenticator' not in st.session_state:
+        st.session_state.authenticator = setup_authenticator()
+    
+    # 상태 변수 초기화
+    if 'show_registration' not in st.session_state:
+        st.session_state.show_registration = False
+    
+    if 'show_login' not in st.session_state:
+        st.session_state.show_login = True
+    
+    # 인증 상태 확인
+    is_authenticated, username, name = check_authentication()
+    
+    if is_authenticated:
+        # 사용자 테마 적용
+        user_preferences = get_user_preferences(username)
+        theme = user_preferences.get("theme", "calm_blue")
+        st.markdown(apply_theme(theme), unsafe_allow_html=True)
+        
+        # 채팅 인터페이스 표시
+        show_chat_interface()
+    else:
+        # 로그인 및 회원가입 페이지
+        st.markdown(apply_theme("calm_blue"), unsafe_allow_html=True)
+        
+        st.title("💭 MindTone - 감정 치유 챗봇")
+        st.markdown("""
+        당신의 마음에 귀 기울이고 함께 감정을 나누는 공간, MindTone에 오신 것을 환영합니다.
+        시작하려면 로그인하거나 새 계정을 만들어주세요.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("로그인", use_container_width=True):
+                st.session_state.show_login = True
+                st.session_state.show_registration = False
+        
+        with col2:
+            if st.button("회원가입", use_container_width=True):
+                st.session_state.show_registration = True
+                st.session_state.show_login = False
+        
+        st.markdown("---")
+        
+        if st.session_state.show_registration:
+            registration_form()
+        
+        if st.session_state.show_login:
+            name, authentication_status, username = st.session_state.authenticator.login("로그인", "main")
+            
+            if authentication_status is False:
+                st.error("사용자 이름 또는 비밀번호가 올바르지 않습니다.")
+            
+            elif authentication_status is None:
+                st.warning("사용자 이름과 비밀번호를 입력하세요.")
 
 if __name__ == "__main__":
     main() 
