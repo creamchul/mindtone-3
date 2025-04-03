@@ -442,6 +442,7 @@ def main():
     
     # 인증 설정
     if 'authenticator' not in st.session_state:
+        from auth_utils import setup_authenticator
         st.session_state.authenticator = setup_authenticator()
     
     # 상태 변수 초기화

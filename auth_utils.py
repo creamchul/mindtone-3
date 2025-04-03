@@ -7,7 +7,7 @@ def load_config():
     """
     YAML 설정 파일을 불러옵니다.
     """
-    with open('config.yaml') as file:
+    with open('config.yaml', encoding='utf-8') as file:
         config = yaml.load(file, Loader=yaml.SafeLoader)
     return config
 
@@ -15,7 +15,7 @@ def save_config(config):
     """
     설정을 YAML 파일에 저장합니다.
     """
-    with open('config.yaml', 'w') as file:
+    with open('config.yaml', 'w', encoding='utf-8') as file:
         yaml.dump(config, file, default_flow_style=False)
 
 def register_user(username, name, email, password):
