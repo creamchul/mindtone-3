@@ -4,10 +4,15 @@ credentials:
       email: jsmith@gmail.com
       name: John Smith
       password: $2b$12$K3JNm5Rp0J0KgFdPL0nN1.N7ub/HF4Z8z9TQ6d1fLRIsC8MKJQHxK # 비밀번호는 'password'
+    admin:
+      email: admin@example.com
+      name: 관리자
+      password: $2b$12$qB7zGSGOPu2X4YP5K4AfX.aTPjS8QC0Ej3ZfJEPKu3YQFnVWQxjXO
 cookie:
   expiry_days: 30
-  key: mindtone_auth_key
-  name: mindtone_auth
+  key: 'mindtone_cookie_key'
+  name: 'mindtone_cookie'
 preauthorized:
   emails:
-  - example@gmail.com 
+  - example@gmail.com
+  - admin@example.com 
